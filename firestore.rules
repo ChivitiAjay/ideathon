@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default Deny All: Prevent any unauthenticated or unauthorized access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User Data Isolation Boundary
+    // Only the authenticated owner can access their profile, journal entries, interactions, and analytics
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Journal Entries Subcollection
+      match /entries/{entryId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Multi-Turn Chat & Prompt Interactions Subcollection
+      match /interactions/{interactionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Emotional Analytics & Mood Insights Subcollection
+      match /analytics/{analyticsId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}
